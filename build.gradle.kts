@@ -40,7 +40,7 @@ publishing {
 
             credentials {
                 username = "ALEX3KOVAL"
-                password = "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"
+                password = System.getenv("GITHUB_TOKEN")
             }
         }
     }
