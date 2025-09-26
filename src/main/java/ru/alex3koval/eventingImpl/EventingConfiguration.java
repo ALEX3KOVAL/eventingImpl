@@ -14,11 +14,13 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import ru.alex3koval.eventingContract.Event;
 import ru.alex3koval.eventingContract.ReactiveEventPusher;
+import ru.alex3koval.eventingContract.SyncEventPusher;
 import ru.alex3koval.eventingContract.dto.CreateEventWDTO;
 import ru.alex3koval.eventingContract.dto.EventRDTO;
 import ru.alex3koval.eventingImpl.factory.KafkaTopicsFetcherFactory;
 import ru.alex3koval.eventingImpl.pusher.AsyncTransactionalOutBoxEventPusherImpl;
 import ru.alex3koval.eventingImpl.pusher.EventPusherImpl;
+import ru.alex3koval.eventingImpl.pusher.SyncEventPusherImpl;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -37,6 +39,12 @@ public class EventingConfiguration {
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     ReactiveEventPusher<Void> eventPusher(StreamBridge streamBridge, ObjectMapper objectMapper) {
         return new EventPusherImpl<>(streamBridge, objectMapper);
+    }
+
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    SyncEventPusher syncEventPusher(StreamBridge streamBridge, ObjectMapper objectMapper) {
+        return new SyncEventPusherImpl(streamBridge, objectMapper);
     }
 
     @Bean
