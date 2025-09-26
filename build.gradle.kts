@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "ru.alex3koval"
-version = "1.0.0"
+version = "1.0.1"
 
 repositories {
     mavenCentral()
@@ -29,7 +29,7 @@ publishing {
 
             groupId = "alex3koval"
             artifactId = "eventing-impl"
-            version = "1.0.0"
+            version = "1.0.1"
         }
     }
 
