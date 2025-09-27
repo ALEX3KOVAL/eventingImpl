@@ -18,7 +18,8 @@ import ru.alex3koval.eventingContract.SyncEventPusher;
 import ru.alex3koval.eventingContract.dto.CreateEventWDTO;
 import ru.alex3koval.eventingContract.dto.EventRDTO;
 import ru.alex3koval.eventingImpl.factory.KafkaTopicsFetcherFactory;
-import ru.alex3koval.eventingImpl.pusher.AsyncTransactionalOutBoxEventPusherImpl;
+import ru.alex3koval.eventingImpl.factory.TransactionalOutBoxReactiveEventPusherFactory;
+import ru.alex3koval.eventingImpl.pusher.TransactionalOutBoxReactiveEventPusherImpl;
 import ru.alex3koval.eventingImpl.pusher.EventPusherImpl;
 import ru.alex3koval.eventingImpl.pusher.SyncEventPusherImpl;
 
@@ -45,17 +46,6 @@ public class EventingConfiguration {
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     SyncEventPusher syncEventPusher(StreamBridge streamBridge, ObjectMapper objectMapper) {
         return new SyncEventPusherImpl(streamBridge, objectMapper);
-    }
-
-    @Bean
-    @Qualifier("transactionalOutboxReactivePusher")
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    ReactiveEventPusher<Long> transactionalOutboxAsyncEventPusher(
-        @Qualifier("asyncTransactionalOutBoxPushingFunction")
-        Function<CreateEventWDTO, Mono<Long>> pushInDbFunction,
-        ObjectMapper mapper
-    ) {
-        return new AsyncTransactionalOutBoxEventPusherImpl<>(mapper, pushInDbFunction);
     }
 
     @Bean

@@ -11,7 +11,7 @@ import ru.alex3koval.eventingContract.vo.EventStatus;
 import java.util.function.Function;
 
 @RequiredArgsConstructor
-public class AsyncTransactionalOutBoxEventPusherImpl<T> implements ReactiveEventPusher<T> {
+public class TransactionalOutBoxReactiveEventPusherImpl<T> implements ReactiveEventPusher<T> {
     private final ObjectMapper mapper;
     private final Function<CreateEventWDTO, Mono<T>> pushInDbFunction;
 
