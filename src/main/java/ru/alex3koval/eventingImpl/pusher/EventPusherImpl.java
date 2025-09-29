@@ -3,7 +3,7 @@ package ru.alex3koval.eventingImpl.pusher;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.kafka.core.KafkaTemplate;
 import reactor.core.publisher.Mono;
 import ru.alex3koval.eventingContract.Event;
 import ru.alex3koval.eventingContract.ReactiveEventPusher;
@@ -11,12 +11,12 @@ import ru.alex3koval.eventingContract.vo.EventStatus;
 import ru.alex3koval.eventingImpl.exception.SendingFailedException;
 
 @RequiredArgsConstructor
-public class EventPusherImpl<T> implements ReactiveEventPusher<T> {
-    private final StreamBridge streamBridge;
+public class EventPusherImpl implements ReactiveEventPusher<Void> {
+    private final KafkaTemplate<String, Event> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
     @Override
-    public Mono<T> push(String topic, EventStatus status, Object payload) {
+    public Mono<Void> push(String topic, EventStatus status, Object payload) {
         if (payload instanceof String) {
             throw new RuntimeException("Payload имеет тип String, но не передано имя события");
         }
@@ -30,7 +30,7 @@ public class EventPusherImpl<T> implements ReactiveEventPusher<T> {
     }
 
     @Override
-    public Mono<T> push(String topic, EventStatus status, Object payload, String eventName) {
+    public Mono<Void> push(String topic, EventStatus status, Object payload, String eventName) {
         return pushEvent(
             topic,
             status,
@@ -39,13 +39,13 @@ public class EventPusherImpl<T> implements ReactiveEventPusher<T> {
         );
     }
 
-    private Mono<T> pushEvent(String topic, EventStatus status, Object payload, String eventName) {
+    private Mono<Void> pushEvent(String topic, EventStatus status, Object payload, String eventName) {
         try {
             String eventJson = payload instanceof String ? (String)payload : objectMapper.writeValueAsString(payload);
 
             return Mono
-                .fromCallable(() ->
-                    streamBridge.send(
+                .fromFuture(
+                    kafkaTemplate.send(
                         topic,
                         new Event(
                             eventName,
@@ -54,15 +54,10 @@ public class EventPusherImpl<T> implements ReactiveEventPusher<T> {
                         )
                     )
                 )
-                .flatMap(sent -> {
-                    if (sent) {
-                        return Mono.empty();
-                    }
-
-                    return Mono.error(
-                        new SendingFailedException("Не удалось отправить событие: " + eventJson)
-                    );
-                });
+                .onErrorResume(exc ->
+                    Mono.error(new SendingFailedException("Не удалось отправить событие: " + eventJson))
+                )
+                .then();
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

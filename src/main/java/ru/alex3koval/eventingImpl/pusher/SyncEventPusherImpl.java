@@ -3,15 +3,16 @@ package ru.alex3koval.eventingImpl.pusher;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.kafka.core.KafkaTemplate;
 import ru.alex3koval.eventingContract.Event;
 import ru.alex3koval.eventingContract.SyncEventPusher;
 import ru.alex3koval.eventingContract.vo.EventStatus;
-import ru.alex3koval.eventingImpl.exception.SendingFailedException;
+
+import java.util.concurrent.ExecutionException;
 
 @RequiredArgsConstructor
 public class SyncEventPusherImpl implements SyncEventPusher {
-    private final StreamBridge streamBridge;
+    private final KafkaTemplate<String, Event> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -42,7 +43,7 @@ public class SyncEventPusherImpl implements SyncEventPusher {
         try {
             String eventJson = payload instanceof String ? (String)payload : objectMapper.writeValueAsString(payload);
 
-            boolean isSent = streamBridge.send(
+            var future = kafkaTemplate.send(
                 topic,
                 new Event(
                     eventName,
@@ -51,12 +52,8 @@ public class SyncEventPusherImpl implements SyncEventPusher {
                 )
             );
 
-            if (isSent) {
-                return;
-            }
-
-            throw new SendingFailedException("Не удалось отправить событие: " + eventJson);
-        } catch (JsonProcessingException | SendingFailedException e) {
+            future.get();
+        } catch (JsonProcessingException | InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
     }
