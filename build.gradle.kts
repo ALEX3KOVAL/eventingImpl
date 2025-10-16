@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "ru.alex3koval"
-version = "1.0.4"
+version = "1.0.5"
 
 repositories {
     mavenCentral()
@@ -15,7 +15,7 @@ dependencies {
     implementation("org.springframework.kafka:spring-kafka:3.3.9")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.20.0")
     implementation("io.projectreactor:reactor-core:3.4.40")
-    implementation("alex3koval:eventing-contract:1.13.+")
+    implementation("alex3koval:eventing-contract:latest.release")
     implementation("ch.qos.logback:logback-classic:1.5.18")
 
     compileOnly("org.projectlombok:lombok:1.18.38")
@@ -29,7 +29,7 @@ publishing {
 
             groupId = "alex3koval"
             artifactId = "eventing-impl"
-            version = "1.0.4"
+            version = "1.0.5"
         }
     }
 

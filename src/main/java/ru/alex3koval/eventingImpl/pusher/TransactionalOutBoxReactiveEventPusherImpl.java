@@ -8,6 +8,8 @@ import ru.alex3koval.eventingContract.ReactiveEventPusher;
 import ru.alex3koval.eventingContract.dto.CreateEventWDTO;
 import ru.alex3koval.eventingContract.vo.EventStatus;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.function.Function;
 
 @RequiredArgsConstructor
@@ -51,7 +53,8 @@ public class TransactionalOutBoxReactiveEventPusherImpl<T> implements ReactiveEv
                     eventName,
                     topic,
                     serializeToJson(mapper, payload),
-                    status
+                    status,
+                    LocalDateTime.now(ZoneOffset.UTC)
                 )
             );
         } catch (JsonProcessingException exc) {
