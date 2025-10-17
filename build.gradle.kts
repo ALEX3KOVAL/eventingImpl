@@ -18,7 +18,7 @@ dependencies {
     implementation("alex3koval:eventing-contract:latest.release")
     implementation("ch.qos.logback:logback-classic:1.5.18")
     implementation("org.springframework.kafka:spring-kafka")
-    implementation("org.springframework.boot:spring-boot-autoconfigure:3.1.0")
+    implementation("org.springframework.boot:spring-boot-autoconfigure:3.5.4")
 
     compileOnly("org.projectlombok:lombok:1.18.38")
     annotationProcessor("org.projectlombok:lombok:1.18.38")
