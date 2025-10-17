@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import reactor.core.scheduler.Schedulers;
@@ -27,6 +29,18 @@ public class EventingConfiguration {
         ProducerFactory<String, Event> producerFactory
     ) {
         return new KafkaTemplate<>(producerFactory);
+    }
+
+    @Bean
+    KafkaAdmin kafkaAdmin(KafkaProperties kafkaProperties) {
+        return new KafkaAdmin(
+            kafkaProperties.buildAdminProperties(null)
+        );
+    }
+
+    @Bean
+    AdminClient adminClient(KafkaAdmin kafkaAdmin) {
+        return AdminClient.create(kafkaAdmin.getConfigurationProperties());
     }
 
     @Bean
