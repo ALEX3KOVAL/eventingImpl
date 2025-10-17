@@ -2,12 +2,15 @@ package ru.alex3koval.eventingImpl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
@@ -19,7 +22,10 @@ import ru.alex3koval.eventingContract.dto.EventRDTO;
 import ru.alex3koval.eventingImpl.factory.KafkaTopicsFetcherFactory;
 import ru.alex3koval.eventingImpl.pusher.EventPusherImpl;
 import ru.alex3koval.eventingImpl.pusher.SyncEventPusherImpl;
+import ru.alex3koval.eventingImpl.serialization.EventSerializer;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 @Configuration
@@ -29,6 +35,19 @@ public class EventingConfiguration {
         ProducerFactory<String, Event> producerFactory
     ) {
         return new KafkaTemplate<>(producerFactory);
+    }
+
+    @Bean
+    ProducerFactory<String, Event> producerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, EventSerializer.class);
+        return new DefaultKafkaProducerFactory<>(props);
+    }
+
+    @Bean
+    EventSerializer eventSerializer(ObjectMapper objectMapper) {
+        return new EventSerializer(objectMapper);
     }
 
     @Bean
