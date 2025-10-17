@@ -34,7 +34,7 @@ public class EventingConfiguration {
     @Bean
     KafkaAdmin kafkaAdmin(KafkaProperties kafkaProperties) {
         return new KafkaAdmin(
-            kafkaProperties.buildAdminProperties()
+            kafkaProperties.buildAdminProperties(null)
         );
     }
 
