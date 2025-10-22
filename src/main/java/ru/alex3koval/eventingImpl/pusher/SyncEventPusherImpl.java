@@ -16,12 +16,18 @@ public class SyncEventPusherImpl implements SyncEventPusher {
     private final ObjectMapper objectMapper;
 
     @Override
-    public void push(String topic, EventStatus status, Object payload) throws InterruptedException {
+    public void push(
+        String id,
+        String topic,
+        EventStatus status,
+        Object payload
+    ) {
         if (payload instanceof String) {
             throw new RuntimeException("Payload имеет тип String, но не передано имя события");
         }
 
         pushEvent(
+            id,
             topic,
             status,
             payload,
@@ -30,8 +36,15 @@ public class SyncEventPusherImpl implements SyncEventPusher {
     }
 
     @Override
-    public void push(String topic, EventStatus status, Object payload, String eventName) {
+    public void push(
+        String id,
+        String topic,
+        EventStatus status,
+        Object payload,
+        String eventName
+    ) {
         pushEvent(
+            id,
             topic,
             status,
             payload,
@@ -39,20 +52,65 @@ public class SyncEventPusherImpl implements SyncEventPusher {
         );
     }
 
-    private void pushEvent(String topic, EventStatus status, Object payload, String eventName) {
+    @Override
+    public void push(String topic, EventStatus status, Object payload) {
+        if (payload instanceof String) {
+            throw new RuntimeException("Payload имеет тип String, но не передано имя события");
+        }
+
+        pushEvent(
+            null,
+            topic,
+            status,
+            payload,
+            payload.getClass().getCanonicalName()
+        );
+    }
+
+    @Override
+    public void push(
+        String topic,
+        EventStatus status,
+        Object payload,
+        String eventName
+    ) {
+        pushEvent(
+            null,
+            topic,
+            status,
+            payload,
+            eventName
+        );
+    }
+
+    private void pushEvent(
+        String id,
+        String topic,
+        EventStatus status,
+        Object payload,
+        String eventName
+    ) {
         try {
             String eventJson = payload instanceof String ? (String)payload : objectMapper.writeValueAsString(payload);
 
-            var future = kafkaTemplate.send(
-                topic,
-                new Event(
+            Event event;
+
+            if (id != null) {
+                event = new Event(
+                    id,
                     eventName,
                     eventJson,
                     status
-                )
-            );
+                );
+            } else {
+                event = new Event(
+                    eventName,
+                    eventJson,
+                    status
+                );
+            }
 
-            future.get();
+            kafkaTemplate.send(topic, event).get();
         } catch (JsonProcessingException | InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }

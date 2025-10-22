@@ -18,6 +18,41 @@ public class TransactionalOutBoxReactiveEventPusherImpl<T> implements ReactiveEv
     private final Function<CreateEventWDTO, Mono<T>> pushInDbFunction;
 
     @Override
+    public Mono<T> push(
+        String id,
+        String topic,
+        EventStatus eventStatus,
+        Object payload
+    ) {
+        if (payload instanceof String) {
+            throw new RuntimeException("Payload имеет тип String, но не передано имя события");
+        }
+
+        return pushEvent(
+            topic,
+            eventStatus,
+            payload,
+            payload.getClass().getCanonicalName()
+        );
+    }
+
+    @Override
+    public Mono<T> push(
+        String id,
+        String topic,
+        EventStatus eventStatus,
+        Object payload,
+        String eventName
+    ) {
+        return pushEvent(
+            topic,
+            eventStatus,
+            payload,
+            eventName
+        );
+    }
+
+    @Override
     public Mono<T> push(String topic, EventStatus eventStatus, Object payload) {
         if (payload instanceof String) {
             throw new RuntimeException("Payload имеет тип String, но не передано имя события");

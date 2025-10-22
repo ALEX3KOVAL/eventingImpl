@@ -16,12 +16,18 @@ public class EventPusherImpl implements ReactiveEventPusher<Void> {
     private final ObjectMapper objectMapper;
 
     @Override
-    public Mono<Void> push(String topic, EventStatus status, Object payload) {
+    public Mono<Void> push(
+        String id,
+        String topic,
+        EventStatus status,
+        Object payload
+    ) {
         if (payload instanceof String) {
             throw new RuntimeException("Payload имеет тип String, но не передано имя события");
         }
 
         return pushEvent(
+            id,
             topic,
             status,
             payload,
@@ -30,8 +36,15 @@ public class EventPusherImpl implements ReactiveEventPusher<Void> {
     }
 
     @Override
-    public Mono<Void> push(String topic, EventStatus status, Object payload, String eventName) {
+    public Mono<Void> push(
+        String id,
+        String topic,
+        EventStatus status,
+        Object payload,
+        String eventName
+    ) {
         return pushEvent(
+            id,
             topic,
             status,
             payload,
@@ -39,19 +52,38 @@ public class EventPusherImpl implements ReactiveEventPusher<Void> {
         );
     }
 
-    private Mono<Void> pushEvent(String topic, EventStatus status, Object payload, String eventName) {
+    @Override
+    public Mono<Void> push(String topic, EventStatus eventStatus, Object payload) {
+        return null;
+    }
+
+    @Override
+    public Mono<Void> push(String topic, EventStatus eventStatus, Object payload, String eventName) {
+        return null;
+    }
+
+    private Mono<Void> pushEvent(
+        String id,
+        String topic,
+        EventStatus status,
+        Object payload,
+        String eventName
+    ) {
         try {
             String eventJson = payload instanceof String ? (String)payload : objectMapper.writeValueAsString(payload);
+
+            Event event = new Event(
+                id,
+                eventName,
+                eventJson,
+                status
+            );
 
             return Mono
                 .fromFuture(
                     kafkaTemplate.send(
                         topic,
-                        new Event(
-                            eventName,
-                            eventJson,
-                            status
-                        )
+                        event
                     )
                 )
                 .onErrorResume(exc ->
